@@ -1,37 +1,55 @@
-// index.js
+const API_KEY = "a6bebe3731fbe1c4727469c0677d50e5"
 
-// Step 1: Fetch Data from the API
-// - Create a function `fetchWeatherData(city)`
-// - Use fetch() to retrieve data from the OpenWeather API
-// - Handle the API response and parse the JSON
-// - Log the data to the console for testing
+const temperatureText = document.getElementById("temperature")
+const descriptionText = document.getElementById("description")
+const humidityText = document.getElementById("humidity")
+const searchBar = document.getElementById("city-input")
+const submitButton = document.getElementById("fetch-weather")
+const errorContainer = document.getElementById("error-message");
 
-// Step 2: Display Weather Data on the Page
-// - Create a function `displayWeather(data)`
-// - Dynamically update the DOM with weather details (e.g., temperature, humidity, weather description)
-// - Ensure the function can handle the data format provided by the API
+async function fetchWeatherData(city) {
+    const endpoint = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=imperial`
 
-// Step 3: Handle User Input
-// - Add an event listener to the button to capture user input
-// - Retrieve the value from the input field
-// - Call `fetchWeatherData(city)` with the user-provided city name
+    try {
+        const response = await fetch(endpoint);
 
-// Step 4: Implement Error Handling
-// - Create a function `displayError(message)`
-// - Handle invalid city names or network issues
-// - Dynamically display error messages in a dedicated section of the page
+        if (!response.ok) {
+            if (response.status === 404) {
+                displayError("City not found. Please try again");
+            } else {
+                displayError(`Error ${response.status}: ${response.statusText}`);
+            }
+            return;
+        }
 
-// Step 5: Optimize Code for Maintainability
-// - Refactor repetitive code into reusable functions
-// - Use async/await for better readability and to handle asynchronous operations
-// - Ensure all reusable functions are modular and clearly named
+        const data = await response.json();
+        displayWeather(data);
+        displayError("")
 
-// BONUS: Loading Indicator
-// - Optionally, add a loading spinner or text while the API request is in progress
+    } catch (error) {
+        displayError("Something went wrong");
+        console.log(error);
+    }
+}
 
-// BONUS: Additional Features
-// - Explore adding more features, such as displaying additional weather details (e.g., wind speed, sunrise/sunset)
-// - Handle edge cases, such as empty input or API rate limits
+function displayWeather(data) {
+    temperatureText.textContent = data.main.temp
+    descriptionText.textContent = data.weather[0].description
+    humidityText.textContent = data.main.humidity
+}
 
-// Event Listener for Fetch Button
-// - Attach the main event listener to the button to start the process
+fetchWeatherData("San Francisco")
+
+submitButton.addEventListener("click", () => {
+    fetchWeatherData(searchBar.value)
+})
+
+function displayError(message) {
+    if (message) {
+        errorContainer.textContent = message;
+        errorContainer.style.display = "block";
+    } else {
+        errorContainer.textContent = "";
+        errorContainer.style.display = "none";
+    }
+}
